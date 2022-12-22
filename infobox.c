@@ -1,7 +1,8 @@
 
 #include "infobox.h"
-#include "ui.h"
+
 #include "game_state.h"
+#include "ui.h"
 
 void handleRenderInfobox() {
     // Draw the status box.
@@ -12,18 +13,20 @@ void handleRenderInfobox() {
     rect.h = INFOBOX_HEIGHT;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderDrawRect(renderer, &rect);
-    rect.x++; rect.y++;
-    rect.w -= 2; rect.h -= 2;
+    rect.x++;
+    rect.y++;
+    rect.w -= 2;
+    rect.h -= 2;
     SDL_SetRenderDrawColor(renderer, 0, 100, 0, 255);
     SDL_RenderFillRect(renderer, &rect);
 
     // Render text if required.
-    static SDL_Texture *texture = NULL;
-    static SDL_Texture *movesTexture = NULL;
-    static SDL_Texture *pointsTexture = NULL;
-    static SDL_Texture *difficultyTexture = NULL;
-    if(game.needsTextRepaint || texture == NULL) {
-        if(texture != NULL) {
+    static SDL_Texture * texture = NULL;
+    static SDL_Texture * movesTexture = NULL;
+    static SDL_Texture * pointsTexture = NULL;
+    static SDL_Texture * difficultyTexture = NULL;
+    if (game.needsTextRepaint || texture == NULL) {
+        if (texture != NULL) {
             // Destroy all textual textures...
             SDL_DestroyTexture(texture);
             SDL_DestroyTexture(movesTexture);
@@ -32,8 +35,8 @@ void handleRenderInfobox() {
         }
         char buf[256];
         sprintf(buf, "Time elapsed: %d:%02d", game.time / 60, game.time % 60);
-        SDL_Color color = {255, 255, 255, 255};
-        SDL_Surface *surface = TTF_RenderText_Blended(font, buf, color);
+        SDL_Color color = { 255, 255, 255, 255 };
+        SDL_Surface * surface = TTF_RenderText_Blended(font, buf, color);
         texture = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_FreeSurface(surface);
         sprintf(buf, "Moves: %d", game.moves);
@@ -44,9 +47,7 @@ void handleRenderInfobox() {
         surface = TTF_RenderText_Blended(font, buf, color);
         pointsTexture = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_FreeSurface(surface);
-        const char * difficulties[] = {
-            "Easy", "Medium", "Hard"
-        };
+        const char * difficulties[] = { "Easy", "Medium", "Hard" };
         sprintf(buf, "Difficulty: %s", difficulties[game.difficulty - 1]);
         surface = TTF_RenderText_Blended(font, buf, color);
         difficultyTexture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -71,4 +72,3 @@ void handleRenderInfobox() {
     text_rect.x = INFOBOX_X_OFFSET + (INFOBOX_WIDTH - text_rect.w) / 2;
     SDL_RenderCopy(renderer, difficultyTexture, NULL, &text_rect);
 }
-

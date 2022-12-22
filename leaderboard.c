@@ -1,12 +1,13 @@
 
 #include "leaderboard.h"
+
 #include "game_state.h"
 #include "ui.h"
 
 void leaderboardHandleMouseUp(int x, int y) {
     // Check if we clicked outside of the settings window.
-    if(x <= LEADERBOARD_WND_OFFSET_X || x >= LEADERBOARD_WND_OFFSET_X + LEADERBOARD_WND_WIDTH ||
-       y <= LEADERBOARD_WND_OFFSET_Y || y >= LEADERBOARD_WND_OFFSET_Y + LEADERBOARD_WND_HEIGHT) {
+    if (x <= LEADERBOARD_WND_OFFSET_X || x >= LEADERBOARD_WND_OFFSET_X + LEADERBOARD_WND_WIDTH ||
+        y <= LEADERBOARD_WND_OFFSET_Y || y >= LEADERBOARD_WND_OFFSET_Y + LEADERBOARD_WND_HEIGHT) {
         game.state = STATE_GAME_IDLE;
         return;
     }
@@ -22,24 +23,24 @@ struct text_row {
 
 static struct text_row leaderboard_data[11];
 
-#define registerEntry(msg, dest) \
-    surface = TTF_RenderText_Blended(font, msg, black); \
+#define registerEntry(msg, dest)                                                \
+    surface = TTF_RenderText_Blended(font, msg, black);                         \
     leaderboard_data[i].dest = SDL_CreateTextureFromSurface(renderer, surface); \
     SDL_FreeSurface(surface);
 
 void onLeaderboardUpdate() {
-    SDL_Color black = {0, 0, 0, 255};
+    SDL_Color black = { 0, 0, 0, 255 };
     int i;
-    for(i = 0; i < 11; i++) {
-        if(leaderboard_data[i].points) SDL_DestroyTexture(leaderboard_data[i].points);
-        if(leaderboard_data[i].moves) SDL_DestroyTexture(leaderboard_data[i].moves);
-        if(leaderboard_data[i].time) SDL_DestroyTexture(leaderboard_data[i].time);
-        if(leaderboard_data[i].date) SDL_DestroyTexture(leaderboard_data[i].date);
+    for (i = 0; i < 11; i++) {
+        if (leaderboard_data[i].points) SDL_DestroyTexture(leaderboard_data[i].points);
+        if (leaderboard_data[i].moves) SDL_DestroyTexture(leaderboard_data[i].moves);
+        if (leaderboard_data[i].time) SDL_DestroyTexture(leaderboard_data[i].time);
+        if (leaderboard_data[i].date) SDL_DestroyTexture(leaderboard_data[i].date);
 
         char buf[32];
         SDL_Surface * surface;
 
-        if(i > 0 && game.leaderboard[i - 1].score == 0) {
+        if (i > 0 && game.leaderboard[i - 1].score == 0) {
             // Empty score.
             sprintf(buf, "%d", i);
             registerEntry(buf, no);
@@ -47,7 +48,7 @@ void onLeaderboardUpdate() {
             registerEntry("--", moves);
             registerEntry("--", time);
             registerEntry("--", date);
-        } else if(i == 0) {
+        } else if (i == 0) {
             // Header.
             registerEntry("No.", no);
             registerEntry("Score", points);
@@ -83,11 +84,13 @@ void leaderboardHandleRender() {
     rect.h = LEADERBOARD_WND_HEIGHT;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderDrawRect(renderer, &rect);
-    rect.x++; rect.y++;
-    rect.w -= 2; rect.h -= 2;
+    rect.x++;
+    rect.y++;
+    rect.w -= 2;
+    rect.h -= 2;
     SDL_SetRenderDrawColor(renderer, 170, 170, 170, 255);
     SDL_RenderFillRect(renderer, &rect);
-    
+
     // Draw a table spanning the entire window.
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     rect.x = LEADERBOARD_WND_OFFSET_X + 10;
@@ -97,7 +100,7 @@ void leaderboardHandleRender() {
     SDL_RenderDrawRect(renderer, &rect);
 
     // Draw all table rows.
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         SDL_Rect row;
         SDL_QueryTexture(leaderboard_data[i].no, NULL, NULL, &row.w, &row.h);
         row.x = LEADERBOARD_WND_OFFSET_X + 15;
@@ -121,16 +124,18 @@ void leaderboardHandleRender() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     int x_offset = LEADERBOARD_WND_OFFSET_X;
     int y_offset = LEADERBOARD_WND_OFFSET_Y;
-    #define draw_horiz(x) \
-        x_offset += x; \
-        SDL_RenderDrawLine(renderer, x_offset, LEADERBOARD_WND_OFFSET_Y + 10, x_offset, LEADERBOARD_WND_OFFSET_Y + LEADERBOARD_WND_HEIGHT - 10);
+#define draw_horiz(x)                                                               \
+    x_offset += x;                                                                  \
+    SDL_RenderDrawLine(renderer, x_offset, LEADERBOARD_WND_OFFSET_Y + 10, x_offset, \
+                       LEADERBOARD_WND_OFFSET_Y + LEADERBOARD_WND_HEIGHT - 10);
     draw_horiz(40);
     draw_horiz(45);
     draw_horiz(50);
     draw_horiz(50);
-    #define draw_vert(x) \
-        y_offset += x; \
-        SDL_RenderDrawLine(renderer, LEADERBOARD_WND_OFFSET_X + 10, y_offset, LEADERBOARD_WND_OFFSET_X + LEADERBOARD_WND_WIDTH - 10, y_offset);
+#define draw_vert(x)                                                      \
+    y_offset += x;                                                        \
+    SDL_RenderDrawLine(renderer, LEADERBOARD_WND_OFFSET_X + 10, y_offset, \
+                       LEADERBOARD_WND_OFFSET_X + LEADERBOARD_WND_WIDTH - 10, y_offset);
     draw_vert(33);
     draw_vert(20);
     draw_vert(20);

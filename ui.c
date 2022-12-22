@@ -1,5 +1,6 @@
 
 #include "ui.h"
+
 #include "asset/assets.h"
 
 SDL_Window * window;
@@ -10,13 +11,13 @@ static SDL_Texture * firework_brush;
 SDL_Texture * card_backs[13];
 SDL_Texture * card_faces[4][13];
 
-SDL_Texture * background, * spiderCard;
+SDL_Texture *background, *spiderCard;
 
 TTF_Font * font;
 TTF_Font * big_font;
 
-#include "vector.h"
 #include "game_state.h"
+#include "vector.h"
 
 struct firework {
     SDL_Color color;
@@ -39,13 +40,13 @@ void render_fireworks() {
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_RenderFillRect(renderer, NULL);
 
-    if(fwbkg <= 220 && game.state == STATE_GAME_FIREWORKS) {
+    if (fwbkg <= 220 && game.state == STATE_GAME_FIREWORKS) {
         fwbkg += 4;
-    } else if(fwbkg >= 4 && game.state != STATE_GAME_FIREWORKS) {
+    } else if (fwbkg >= 4 && game.state != STATE_GAME_FIREWORKS) {
         fwbkg -= 4;
     }
-        
-    if((counter++) % (FPS * 2) != 0) {
+
+    if ((counter++) % (FPS * 2) != 0) {
         return;
     }
 
@@ -74,7 +75,7 @@ void render_fireworks() {
 
 void tick_fireworks(uint64_t ticks) {
     // Update each firework.
-    for(int i = 0; i < vector_size(fireworks); i++) {
+    for (int i = 0; i < vector_size(fireworks); i++) {
         struct firework * fw = &fireworks[i];
         fw->x += fw->xvel * ticks;
         fw->y += fw->yvel * ticks;
@@ -82,22 +83,22 @@ void tick_fireworks(uint64_t ticks) {
         fw->yvel += ACCEL * ticks;
     }
 
-    for(int i = 0; i < vector_size(fireworks); i++) {
+    for (int i = 0; i < vector_size(fireworks); i++) {
         // Remove dead fireworks.
         struct firework * fw = &fireworks[i];
-        if(fw->x < 0 || fw->x > WIN_WIDTH || fw->y < 0 || fw->y > WIN_HEIGHT) {
+        if (fw->x < 0 || fw->x > WIN_WIDTH || fw->y < 0 || fw->y > WIN_HEIGHT) {
             vector_erase(fireworks, i);
             i--;
         }
     }
 
-    for(int i = 0; i < vector_size(fireworks); i++) {
+    for (int i = 0; i < vector_size(fireworks); i++) {
         // Generate sparks.
         struct firework * fw = &fireworks[i];
-        if(fw->yvel > 0 && fw->isrocket) {
+        if (fw->yvel > 0 && fw->isrocket) {
             // Generate a bunch of smaller fireworks going in random directions.
             int number = rand() % 50 + 50;
-            for(int j = 0; j < number; j++) {
+            for (int j = 0; j < number; j++) {
                 struct firework fw2 = { fw->color, 0, 0, fw->x, fw->y };
 
                 // Random velocities.
@@ -111,10 +112,16 @@ void tick_fireworks(uint64_t ticks) {
                 fw2.color.g -= 32;
                 fw2.color.b -= 32;
 
-                switch(rand() % 3) {
-                    case 0: fw2.color.r += rand() % 32; break;
-                    case 1: fw2.color.g += rand() % 32; break;
-                    case 2: fw2.color.b += rand() % 32; break;
+                switch (rand() % 3) {
+                    case 0:
+                        fw2.color.r += rand() % 32;
+                        break;
+                    case 1:
+                        fw2.color.g += rand() % 32;
+                        break;
+                    case 2:
+                        fw2.color.b += rand() % 32;
+                        break;
                 }
 
                 vector_push_back(fireworks, fw2);
@@ -125,12 +132,12 @@ void tick_fireworks(uint64_t ticks) {
         }
     }
 
-    for(int i = 0; i < vector_size(fireworks); i++) {
+    for (int i = 0; i < vector_size(fireworks); i++) {
         // Update the lifetime of each firework.
         struct firework * fw = &fireworks[i];
-        if(fw->isrocket == 0) {
+        if (fw->isrocket == 0) {
             fw->lifetime -= ticks;
-            if(fw->lifetime <= 0) {
+            if (fw->lifetime <= 0) {
                 vector_erase(fireworks, i);
                 i--;
             }
@@ -138,12 +145,12 @@ void tick_fireworks(uint64_t ticks) {
     }
 
     // Render all fireworks.
-    for(int i = 0; i < vector_size(fireworks); i++) {
+    for (int i = 0; i < vector_size(fireworks); i++) {
         struct firework * fw = &fireworks[i];
 
         // Draw the master stroke:
         SDL_SetTextureColorMod(firework_brush, fw->color.r, fw->color.g, fw->color.b);
-        
+
         SDL_Rect rect = { fw->x - 8, fw->y - 8, 8, 8 };
         SDL_RenderCopy(renderer, firework_brush, NULL, &rect);
 
@@ -151,14 +158,15 @@ void tick_fireworks(uint64_t ticks) {
 
         // Draw the trail: Smaller copies of the brush with increasing Alpha channel value.
         float prevyvel = fw->yvel;
-        for(int j = 1; j < 15; j++) {
+        for (int j = 1; j < 15; j++) {
             SDL_SetTextureColorMod(firework_brush, fw->color.r, fw->color.g, fw->color.b);
             SDL_SetTextureAlphaMod(firework_brush, fw->lifetime / 5 - j * 10);
 
             fw->yvel -= ACCEL * 35;
             myx -= fw->xvel * 25;
             myy -= fw->yvel * 25;
-            rect.x = myx; rect.y = myy;
+            rect.x = myx;
+            rect.y = myy;
             SDL_RenderCopy(renderer, firework_brush, NULL, &rect);
         }
         fw->yvel = prevyvel;
@@ -166,15 +174,15 @@ void tick_fireworks(uint64_t ticks) {
 }
 
 void load_textures() {
-    #define loadas(buf, dest) \
-    { \
+#define loadas(buf, dest)                                                                \
+    {                                                                                    \
         SDL_Surface * surface = SDL_LoadBMP_RW(SDL_RWFromConstMem(buf, sizeof(buf)), 1); \
-        if(surface == NULL) { \
-            abort(); \
-        } \
-        SDL_SetColorKey(surface, SDL_TRUE, 0xFF00FF); \
-        dest = SDL_CreateTextureFromSurface(renderer, surface); \
-        SDL_FreeSurface(surface); \
+        if (surface == NULL) {                                                           \
+            abort();                                                                     \
+        }                                                                                \
+        SDL_SetColorKey(surface, SDL_TRUE, 0xFF00FF);                                    \
+        dest = SDL_CreateTextureFromSurface(renderer, surface);                          \
+        SDL_FreeSurface(surface);                                                        \
     }
 
     // Load card faces and backs.
@@ -254,14 +262,15 @@ void load_textures() {
 
     loadas(stroke_bmp, firework_brush);
 
-    #undef loadas
+#undef loadas
 
     font = TTF_OpenFontRW(SDL_RWFromConstMem(micross_ttf, sizeof(micross_ttf)), 1, 14);
     big_font = TTF_OpenFontRW(SDL_RWFromConstMem(micross_ttf, sizeof(micross_ttf)), 1, 24);
 }
 
 int create_window() {
-    window = SDL_CreateWindow("Spider Solitaire", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Spider Solitaire", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH,
+                              WIN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == NULL) {
         fprintf(stderr, "Unable to create window: %s\n", SDL_GetError());
         return 1;
@@ -279,8 +288,8 @@ int create_window() {
 }
 
 void render_felt() {
-    for(int i = 0; i <= WIN_WIDTH / 64; i++) {
-        for(int j = 0; j <= WIN_HEIGHT / 64; j++) {
+    for (int i = 0; i <= WIN_WIDTH / 64; i++) {
+        for (int j = 0; j <= WIN_HEIGHT / 64; j++) {
             SDL_Rect rect;
 
             rect.x = i * 64;

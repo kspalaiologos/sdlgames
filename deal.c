@@ -1,7 +1,8 @@
 
 #include "deal.h"
-#include "undo.h"
+
 #include "game_state.h"
+#include "undo.h"
 #include "win.h"
 
 static int dealX, dealY, row_dealt;
@@ -9,9 +10,9 @@ static int dealX, dealY, row_dealt;
 static void shuffle_card(int * dsuit, int * dvalue) {
     int suit, value;
 
-    if(game.difficulty == 3) {
+    if (game.difficulty == 3) {
         // Four suits.
-        for(;;) {
+        for (;;) {
             suit = rand() % 4;
             value = rand() % 13;
             if (game.counts[suit][value] < 2) {
@@ -19,9 +20,9 @@ static void shuffle_card(int * dsuit, int * dvalue) {
                 break;
             }
         }
-    } else if(game.difficulty == 2) {
+    } else if (game.difficulty == 2) {
         // Two suits: need to be careful. Suit must be either 1 or 2, we're simulating 4 decks.
-        for(;;) {
+        for (;;) {
             suit = (rand() % 2) + 1;
             value = rand() % 13;
             if (game.counts[suit][value] < 4) {
@@ -29,9 +30,9 @@ static void shuffle_card(int * dsuit, int * dvalue) {
                 break;
             }
         }
-    } else if(game.difficulty == 1) {
+    } else if (game.difficulty == 1) {
         // One suit: Suit must be 3, we're simulating 8 decks.
-        for(;;) {
+        for (;;) {
             suit = 3;
             value = rand() % 13;
             if (game.counts[suit][value] < 8) {
@@ -46,7 +47,7 @@ static void shuffle_card(int * dsuit, int * dvalue) {
 }
 
 void deal_row(void) {
-    if(row_dealt == 10) {
+    if (row_dealt == 10) {
         row_dealt = 0;
         game.state = STATE_GAME_IDLE;
         sequencePoint();
@@ -80,7 +81,7 @@ void deal(void) {
     game.stacks[dealX].num_cards++;
 
     // Check if we dealt the last card in this column:
-    if((dealX <= 3 && dealY == 5) || (dealX > 3 && dealY == 4)) {
+    if ((dealX <= 3 && dealY == 5) || (dealX > 3 && dealY == 4)) {
         game.stacks[dealX].visible_offset = 1;
     }
 
@@ -93,14 +94,15 @@ void deal(void) {
     if (dealY == 5 && dealX == 4) {
         game.state = STATE_GAME_IDLE;
         // Deal the extra deals.
-        for(int i = 0; i < 5; i++) {
-            for(int j = 0; j < 10; j++) {
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 10; j++) {
                 shuffle_card(&suit, &value);
                 game.extracards[i][j].suit = suit;
                 game.extracards[i][j].value = value;
             }
         }
-        dealX = 0; dealY = 0;
+        dealX = 0;
+        dealY = 0;
         sequencePoint();
         boardStateChangedDispatcher();
     }

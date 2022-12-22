@@ -2,8 +2,9 @@
 #ifndef _GAME_STATE_H
 #define _GAME_STATE_H
 
-#include "vector.h"
 #include <time.h>
+
+#include "vector.h"
 
 enum {
     STATE_GAME_IDLE,

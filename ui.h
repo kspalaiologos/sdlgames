@@ -26,9 +26,9 @@ extern SDL_Renderer * renderer;
 extern SDL_Texture * card_backs[13];
 extern SDL_Texture * card_faces[4][13];
 
-extern SDL_Texture * background, * spiderCard;
+extern SDL_Texture *background, *spiderCard;
 
-extern TTF_Font * font, * big_font;
+extern TTF_Font *font, *big_font;
 
 void tick_fireworks(uint64_t ticks);
 void render_fireworks();
