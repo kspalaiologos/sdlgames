@@ -7,6 +7,8 @@
 
 #include "main.h"
 
+static int won(void);
+
 unsigned minefield_x = 9, minefield_y = 9, minefield_mines = 10;
 char * minefield = NULL;
 char * minefield_visible = NULL;
