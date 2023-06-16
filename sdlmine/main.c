@@ -61,7 +61,7 @@ int main(void) {
 
     calculate_window_dimensions();
     window = SDL_CreateWindow("SDLMine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_dim_x, window_dim_y,
-                              SDL_WINDOW_SHOWN);
+                              SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL) {
         fprintf(stderr, "Unable to create window: %s\n", SDL_GetError());
         return 1;
@@ -73,7 +73,6 @@ int main(void) {
         return 1;
     }
 
-    SDL_RenderSetLogicalSize(renderer, window_dim_x, window_dim_y);
     assets_load(renderer);
 
     SDL_SetWindowIcon(window, mine);
@@ -159,7 +158,6 @@ int main(void) {
                                 if (may_restart) {
                                     regenerate_minefield(minefield_x, minefield_y, minefield_mines);
                                     calculate_window_dimensions();
-                                    SDL_RenderSetLogicalSize(renderer, window_dim_x, window_dim_y);
                                     SDL_SetWindowSize(window, window_dim_x, window_dim_y);
                                     timer_started = 0;
                                     may_restart = 0;
