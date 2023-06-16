@@ -10,9 +10,9 @@ jobs:
     - uses: actions/checkout@v3
     - name: Configure
       run: |
-        cd sdlmine && ./autogen.sh && cd ..
-        cd sdlreversi && ./autogen.sh && cd ..
-        cd spidersol && ./autogen.sh && cd ..
+        cd sdlmine && ./autogen.sh && ./configure && cd ..
+        cd sdlreversi && ./autogen.sh && ./configure && cd ..
+        cd spidersol && ./autogen.sh && ./configure && cd ..
     - name: Make source packages
       run: |
         cd sdlmine && make dist && cd ..
