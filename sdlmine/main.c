@@ -160,7 +160,7 @@ int main(void) {
                                     regenerate_minefield(minefield_x, minefield_y, minefield_mines);
                                     calculate_window_dimensions();
                                     SDL_SetWindowSize(window, window_dim_x, window_dim_y);
-                                    SDL_RenderSetLogicalSize(renderer, window_dim_x, window_dim_y);
+                                    // SDL_RenderSetLogicalSize(renderer, window_dim_x, window_dim_y);
                                     timer_started = 0;
                                     may_restart = 0;
                                     game_over = 0;
