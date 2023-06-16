@@ -133,12 +133,10 @@ static int won(void) {
     for (int i = 0; i < minefield_x * minefield_y; i++) {
         if (minefield[i] == 9 && minefield_visible[i] != VIS_FLAG) {
             won = 0;
-            printf("not winning: %d, unflagged mine\n", i);
             break;
         }
         if (minefield[i] != 9 && minefield_visible[i] == VIS_COVERED) {
             won = 0;
-            printf("not winning: %d, covered square that is not mine\n", i);
             break;
         }
     }
