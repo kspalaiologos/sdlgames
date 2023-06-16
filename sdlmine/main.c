@@ -73,6 +73,19 @@ int main(void) {
         return 1;
     }
 
+    int rw = 0, rh = 0;
+    SDL_GetRendererOutputSize(renderer, &rw, &rh);
+    if(rw != window_dim_x) {
+        float widthScale = (float)rw / (float) window_dim_x;
+        float heightScale = (float)rh / (float) window_dim_y;
+
+        if(widthScale != heightScale) {
+            fprintf(stderr, "WARNING: width scale != height scale\n");
+        }
+
+        SDL_RenderSetScale(renderer, widthScale, heightScale);
+    }
+
     assets_load(renderer);
 
     SDL_SetWindowIcon(window, mine);
@@ -159,6 +172,18 @@ int main(void) {
                                     regenerate_minefield(minefield_x, minefield_y, minefield_mines);
                                     calculate_window_dimensions();
                                     SDL_SetWindowSize(window, window_dim_x, window_dim_y);
+                                    int rw = 0, rh = 0;
+                                    SDL_GetRendererOutputSize(renderer, &rw, &rh);
+                                    if(rw != window_dim_x) {
+                                        float widthScale = (float)rw / (float) window_dim_x;
+                                        float heightScale = (float)rh / (float) window_dim_y;
+
+                                        if(widthScale != heightScale) {
+                                            fprintf(stderr, "WARNING: width scale != height scale\n");
+                                        }
+
+                                        SDL_RenderSetScale(renderer, widthScale, heightScale);
+                                    }
                                     timer_started = 0;
                                     may_restart = 0;
                                     game_over = 0;
