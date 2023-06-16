@@ -1,5 +1,5 @@
 
-CC=emcc
+CC=gcc
 CFLAGS=-O3 -flto -g3
 LDFLAGS=-lSDL2 -lSDL2_ttf -lm
 
