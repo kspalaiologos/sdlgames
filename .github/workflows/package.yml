@@ -21,11 +21,10 @@ jobs:
         cd sdlmine && make dist && cd ..
         cd sdlreversi && make dist && cd ..
         cd spidersol && make dist && cd ..
-    - name: Upload source package artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: bzip3-${{ github.sha }}
-        path: bzip3-${{ github.sha }}.tar.gz
+    - name: Generate release tag
+      id: tag
+      run: |
+        echo "::set-output name=release_tag::UserBuild_$(date +"%Y.%m.%d_%H-%M")"
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
