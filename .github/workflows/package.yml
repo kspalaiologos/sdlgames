@@ -1,0 +1,32 @@
+name: Build
+
+on: [ push, pull_request ]
+
+jobs:
+  dist:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure
+      run: |
+        cd sdlmine && ./autogen.sh && cd ..
+        cd sdlreversi && ./autogen.sh && cd ..
+        cd spidersol && ./autogen.sh && cd ..
+    - name: Make source packages
+      run: |
+        cd sdlmine && make dist && cd ..
+        cd sdlreversi && make dist && cd ..
+        cd spidersol && make dist && cd ..
+    - name: Upload source package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: bzip3-${{ github.sha }}
+        path: bzip3-${{ github.sha }}.tar.gz
+    - name: Publish Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          sdlmine/sdlmine-1.0.tar.gz
+          sdlreversi/sdlreversi-1.0.tar.gz
+          spidersol/spidersol-1.0.tar.gz
