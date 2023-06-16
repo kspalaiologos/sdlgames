@@ -27,7 +27,10 @@ jobs:
         echo "::set-output name=release_tag::UserBuild_$(date +"%Y.%m.%d_%H-%M")"
     - name: Publish Release
       uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
         files: |
           sdlmine/sdlmine-1.0.tar.gz
           sdlreversi/sdlreversi-1.0.tar.gz
