@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install SDL
+      run: |
+        sudo apt install -y libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev
     - name: Configure
       run: |
         cd sdlmine && ./autogen.sh && ./configure && cd ..
