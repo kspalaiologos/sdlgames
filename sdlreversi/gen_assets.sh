@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 rm -f assets.h assets.cpp assets_load.c assets_free.c assets_decl.c
 touch assets.h assets.cpp assets_load.c assets_free.c assets_decl.c
