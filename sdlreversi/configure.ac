@@ -6,6 +6,13 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux])
 AC_COPYRIGHT([Copyright (C) 2023 Kamila Szewczyk; licensed under the terms of the GNU GPLv3 license.])
 
+if test "`uname -s`" = "NetBSD"; then
+	AM_CONDITIONAL(NETBSD, true)
+	CFLAGS="-I/usr/pkg/include -L/usr/pkg/lib -Wl,-R/usr/pkg/lib"
+else
+	AM_CONDITIONAL(NETBSD, false)
+fi
+
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 # Checks for programs.
