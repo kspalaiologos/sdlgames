@@ -9,7 +9,18 @@ A small collection of SDL games made under 24h. List of games:
 
 ## Emscripten builds
 
+Spider Solitaire:
+
 ```
 emconfigure ./configure "CFLAGS=-sUSE_SDL=2 -sUSE_SDL_TTF=2 -std=gnu11 -sWASM=0 -O3
+emmake make all
+```
+
+Reversi:
+
+```
+emconfigure ./configure "CFLAGS=-sUSE_SDL=2 -sUSE_SDL_TTF=2 -std=gnu11 -sWASM=0 -Os" \
+                        "LDFLAGS=-sWASM=0 -sALLOW_MEMORY_GROWTH --memory-init-file 0 -sTOTAL_MEMORY=65536000" \
+                        "CXXFLAGS=-sUSE_SDL=2 -sUSE_SDL_TTF=2 -std=gnu++17 -sWASM=0 -Os -sALLOW_MEMORY_GROWTH"
 emmake make all
 ```
