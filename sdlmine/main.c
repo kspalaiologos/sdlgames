@@ -207,7 +207,11 @@ int main(void) {
                                 int x = (event.button.x - rect.x) / 16;
                                 int y = (event.button.y - rect.y) / 16;
                                 if (x >= 0 && x < minefield_x && y >= 0 && y < minefield_y) {
-                                    timer_started = 1;
+                                    if (timer_started == 0) {
+                                        while (minefield[x + y * minefield_x] == 9)
+                                            regenerate_minefield(minefield_x, minefield_y, minefield_mines);
+                                        timer_started = 1;
+                                    }
                                     int r = make_move(x, y);
                                     if (r == -1) {
                                         mouth_idx = 3;
