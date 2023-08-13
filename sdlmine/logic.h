@@ -14,6 +14,7 @@ extern unsigned minefield_x, minefield_y, minefield_mines;
 extern char * minefield;
 extern char * minefield_visible;
 extern int mine_counter;
+extern char first_move;
 
 void regenerate_minefield(unsigned x, unsigned y, unsigned mines);
 int toggle_flag(int x, int y);

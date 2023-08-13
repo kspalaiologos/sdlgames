@@ -12,15 +12,18 @@ static int won(void);
 unsigned minefield_x = 9, minefield_y = 9, minefield_mines = 10;
 char * minefield = NULL;
 char * minefield_visible = NULL;
+char * minefield_unlose_buf = NULL;
 
 void regenerate_minefield(unsigned x, unsigned y, unsigned mines) {
     srand(time(NULL));
 
     free(minefield);
     free(minefield_visible);
+    free(minefield_unlose_buf);
 
     minefield = calloc(x * y, 1);
     minefield_visible = calloc(x * y, 1);
+    minefield_unlose_buf = calloc(x * y, 1);
 
     for (unsigned i = 0; i < mines; i++) {
         unsigned mine_x = rand() % x;
@@ -49,6 +52,7 @@ void regenerate_minefield(unsigned x, unsigned y, unsigned mines) {
     }
 
     mine_counter = mines;
+    first_move = 1;
 }
 
 static void flood_uncover(int x, int y) {
@@ -143,11 +147,30 @@ static int won(void) {
     return won;
 }
 
+char first_move = 1;
+
 int make_move(int x, int y) {
     int vis = minefield_visible[x + y * minefield_x];
     int min = minefield[x + y * minefield_x];
     if (vis != VIS_COVERED) return 0;
     if (min == 9) {
+        if (first_move) {
+            int not_mines = 0;
+            for (int i = 0; i < minefield_x * minefield_y; i++) {
+                if(minefield[i] != 9) {
+                    minefield_unlose_buf[not_mines] = i;
+                    not_mines++;
+                }
+            }
+            if (not_mines > 0) {
+                int i = minefield_unlose_buf[rand() % not_mines];
+                int j = x + y * minefield_x;
+                int c = minefield[j];
+                minefield[j] = minefield[i];
+                minefield[i] = c;
+                return make_move(x, y);
+            }
+        }
         for (int i = 0; i < minefield_x * minefield_y; i++) {
             if (minefield[i] == 9) minefield_visible[i] = VIS_OTHER_MINE;
             if (minefield_visible[i] == VIS_FLAG && minefield[i] != 9) minefield_visible[i] = VIS_WRONG_FLAG;
@@ -155,6 +178,7 @@ int make_move(int x, int y) {
         minefield_visible[x + y * minefield_x] = VIS_LOSING_MINE;
         return -1;
     } else {
+        first_move = 0;
         flood_uncover(x, y);
         return won();
     }
