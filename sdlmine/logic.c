@@ -9,7 +9,7 @@
 
 static int won(void);
 
-unsigned minefield_x = 9, minefield_y = 9, minefield_mines = 10;
+unsigned minefield_x = 9, minefield_y = 9, minefield_mines = 10, safepoint_x = -1, safepoint_y = -1;
 char * minefield = NULL;
 char * minefield_visible = NULL;
 
@@ -25,7 +25,7 @@ void regenerate_minefield(unsigned x, unsigned y, unsigned mines) {
     for (unsigned i = 0; i < mines; i++) {
         unsigned mine_x = rand() % x;
         unsigned mine_y = rand() % y;
-        if (minefield[mine_y * x + mine_x] == 9) {
+        if (minefield[mine_y * x + mine_x] == 9 || (mine_x == safepoint_x && mine_y == safepoint_y)) {
             i--;
             continue;
         }
@@ -48,6 +48,8 @@ void regenerate_minefield(unsigned x, unsigned y, unsigned mines) {
         minefield_visible[i] = VIS_COVERED;
     }
 
+    safepoint_x = -1;
+    safepoint_y = -1;
     mine_counter = mines;
 }
 

@@ -152,7 +152,7 @@ void cntrlHandleKey(SDL_Keysym sym) {
                     }
                 }
                 break;
-            case SDLK_SPACE:
+            case SDLK_SPACE: {
                 int status = 1;
                 for (int i = 0; i < 10; i++) {
                     if (game.stacks[i].num_cards == 0) {
@@ -165,6 +165,7 @@ void cntrlHandleKey(SDL_Keysym sym) {
                     game.remainingExtraDeals--;
                 }
                 break;
+            }
             case SDLK_RETURN:
                 if (selectedColumn != -1) {
                     if (selectedSrcColumn == -1) {

@@ -10,7 +10,7 @@
 #define VIS_LOSING_MINE 5
 #define VIS_OTHER_MINE 6
 
-extern unsigned minefield_x, minefield_y, minefield_mines;
+extern unsigned minefield_x, minefield_y, minefield_mines, safepoint_x, safepoint_y;
 extern char * minefield;
 extern char * minefield_visible;
 extern int mine_counter;

@@ -4,16 +4,9 @@
 #include "leaderboard.h"
 #include "undo.h"
 
-#ifdef EMSCRIPTEN
-    #include <emscripten.h>
-static char * fs_name() { return "/offline/solitaire.dat"; }
-
-static void fs_flush_data(FILE * f) { EM_ASM(FS.syncfs(function(err){ console.log("Error syncing data to disk.") });); }
-#else
 static char * fs_name() { return "solitaire.dat"; }
 
 static void fs_flush_data(FILE * f) { fflush(f); }
-#endif
 
 #include <stdio.h>
 

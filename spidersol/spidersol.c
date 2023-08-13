@@ -323,14 +323,203 @@ void render_menu() {
 
 #ifdef EMSCRIPTEN
     #include <emscripten.h>
+    #include <emscripten/html5.h>
 #endif
+
+SDL_bool done = SDL_FALSE;
+uint64_t frame_start;
+int secondsCurrent;
+
+void main_loop(void) {
+    #ifdef EMSCRIPTEN
+    if(done) emscripten_cancel_main_loop();
+    #endif
+    if (time(NULL) != secondsCurrent &&
+        (game.state == STATE_GAME_IDLE || game.state == STATE_GAME_DRAGGING_STACK)) {
+        secondsCurrent = time(NULL);
+        game.time++;
+        game.needsTextRepaint = 1;
+    }
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                done = SDL_TRUE;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    switch (game.state) {
+                        case STATE_GAME_IDLE:
+                            for (int i = 0; i < 10; i++) {
+                                for (int j = game.stacks[i].num_cards - 1; j >= 0; j--) {
+                                    if (j >= game.stacks[i].num_cards - game.stacks[i].visible_offset) {
+                                        if (event.button.x >= game.stacks[i].cards[j].x &&
+                                            event.button.x <= game.stacks[i].cards[j].x + CARD_WIDTH &&
+                                            event.button.y >= game.stacks[i].cards[j].y &&
+                                            event.button.y <= game.stacks[i].cards[j].y + CARD_HEIGHT) {
+                                            // We've clicked on this card.
+                                            // Before we start dragging, make sure that the color in the entire row
+                                            // is the same and the values are ascending with difference of one.
+                                            int color = game.stacks[i].cards[j].suit;
+                                            int value = game.stacks[i].cards[j].value;
+                                            int k;
+                                            for (k = j; k < game.stacks[i].num_cards; k++) {
+                                                if (game.stacks[i].cards[k].suit != color ||
+                                                    game.stacks[i].cards[k].value != value) {
+                                                    break;
+                                                }
+                                                value++;
+                                            }
+                                            if (k != game.stacks[i].num_cards) {
+                                                break;
+                                            }
+                                            game.state = STATE_GAME_DRAGGING_STACK;
+                                            dragging_stack = i;
+                                            dragging_stack_offset = j;
+                                            dragging_stack_x = event.button.x;
+                                            dragging_stack_y = event.button.y;
+                                            dragging_mouse_off_x = event.button.x - game.stacks[i].cards[j].x;
+                                            dragging_mouse_off_y = event.button.y - game.stacks[i].cards[j].y;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                }
+                break;
+            case SDL_MOUSEMOTION:
+                if (game.state == STATE_GAME_DRAGGING_STACK) {
+                    dragging_stack_x = event.motion.x;
+                    dragging_stack_y = event.motion.y;
+                } else {
+                    // Highlight menus?
+                    highlightedMenu = -1;
+                    for (int i = 0; i < 7; i++) {
+                        if (event.motion.x >= menuButtons[i].x && event.motion.x >= menuButtons[i].y &&
+                            event.motion.x <= menuButtons[i].x + menuButtons[i].w &&
+                            event.motion.y <= menuButtons[i].y + menuButtons[i].h) {
+                            highlightedMenu = i;
+                            break;
+                        }
+                    }
+                }
+                break;
+            case SDL_KEYDOWN:
+                cntrlHandleKey(event.key.keysym);
+                break;
+            case SDL_MOUSEBUTTONUP:
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    switch (game.state) {
+                        case STATE_GAME_IDLE:
+                            // Clicked to deal a new row?
+                            if (game.remainingExtraDeals > 0 && event.button.x >= EXTRA_CARDS_X_OFFSET &&
+                                event.button.x <= EXTRA_CARDS_X_OFFSET + CARD_WIDTH * game.remainingExtraDeals &&
+                                event.button.y >= EXTRA_CARDS_Y_OFFSET &&
+                                event.button.y <= EXTRA_CARDS_Y_OFFSET + CARD_HEIGHT) {
+                                // Check if every slot has at least one card.
+                                int status = 1;
+                                for (int i = 0; i < 10; i++) {
+                                    if (game.stacks[i].num_cards == 0) {
+                                        status = 0;
+                                        break;
+                                    }
+                                }
+                                if (status) {
+                                    game.state = STATE_GAME_DEALING_ROW;
+                                    game.remainingExtraDeals--;
+                                }
+                            } else if (highlightedMenu != -1) {
+                                (menuActions[highlightedMenu])();
+                            }
+                            break;
+                        case STATE_GAME_FIREWORKS:
+                            if (highlightedMenu != -1) {
+                                (menuActions[highlightedMenu])();
+                            }
+                            break;
+                        case STATE_GAME_DRAGGING_STACK:
+                            drop_stack(event.button.x, event.button.y);
+                            game.state = STATE_GAME_IDLE;
+                            break;
+                        case STATE_GAME_SETTINGS:
+                            settingsHandleMouseUp(event.button.x, event.button.y);
+                            break;
+                        case STATE_GAME_LEADERBOARD:
+                            leaderboardHandleMouseUp(event.button.x, event.button.y);
+                            break;
+                        case STATE_GAME_LOST:
+                            handleLossMouseUp(event.button.x, event.button.y);
+                            if (highlightedMenu != -1) {
+                                (menuActions[highlightedMenu])();
+                            }
+                            break;
+                    }
+                }
+                break;
+        }
+    }
+
+    // Limit the game to 32fps.
+    uint64_t frame_end = SDL_GetTicks64();
+    if (frame_end - frame_start >= 1000 / FPS) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        render_felt();
+        handleRenderInfobox();
+
+        switch (game.state) {
+            case STATE_GAME_IDLE:
+                if (game.wonKings[7] != -1) {
+                    game.state = STATE_GAME_FIREWORKS;
+                    handle_victory();
+                } else if (!has_moves()) {
+                    game.state = STATE_GAME_LOST;
+                }
+                break;
+            case STATE_GAME_DEAL:
+                deal();
+                SDL_Delay(10);
+                break;
+            case STATE_GAME_DEALING_ROW:
+                deal_row();
+                SDL_Delay(40);
+                break;
+        }
+
+        render_stacks();
+        cntrlRender();
+
+        switch (game.state) {
+            case STATE_GAME_FIREWORKS:
+                render_fireworks();
+                break;
+            case STATE_GAME_SETTINGS:
+                settingsHandleRender();
+                break;
+            case STATE_GAME_LEADERBOARD:
+                leaderboardHandleRender();
+                break;
+            case STATE_GAME_LOST:
+                handle_loss();
+                break;
+        }
+
+        tick_fireworks(frame_end - frame_start);
+
+        render_menu();
+
+        SDL_RenderPresent(renderer);
+
+        frame_start = SDL_GetTicks64();
+    } else {
+        SDL_Delay(1);
+    }
+}
 
 int main(void) {
-#ifdef EMSCRIPTEN
-    EM_ASM(FS.mkdir('/offline'); FS.mount(IDBFS, {}, '/offline');
-
-           FS.syncfs(true, function(err){ console.log("Error syncing data to disk.") }););
-#endif
     if (TTF_Init() != 0) {
         fprintf(stderr, "Unable to initialize SDL_ttf: %s\n", TTF_GetError());
         return 1;
@@ -350,194 +539,14 @@ int main(void) {
     load_storage();
     atexit(save_storage);
 
-    SDL_bool done = SDL_FALSE;
-    uint64_t frame_start = SDL_GetTicks64();
-    int secondsCurrent = time(NULL);
-    while (!done) {
-        if (time(NULL) != secondsCurrent &&
-            (game.state == STATE_GAME_IDLE || game.state == STATE_GAME_DRAGGING_STACK)) {
-            secondsCurrent = time(NULL);
-            game.time++;
-            game.needsTextRepaint = 1;
-        }
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    done = SDL_TRUE;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        switch (game.state) {
-                            case STATE_GAME_IDLE:
-                                for (int i = 0; i < 10; i++) {
-                                    for (int j = game.stacks[i].num_cards - 1; j >= 0; j--) {
-                                        if (j >= game.stacks[i].num_cards - game.stacks[i].visible_offset) {
-                                            if (event.button.x >= game.stacks[i].cards[j].x &&
-                                                event.button.x <= game.stacks[i].cards[j].x + CARD_WIDTH &&
-                                                event.button.y >= game.stacks[i].cards[j].y &&
-                                                event.button.y <= game.stacks[i].cards[j].y + CARD_HEIGHT) {
-                                                // We've clicked on this card.
-                                                // Before we start dragging, make sure that the color in the entire row
-                                                // is the same and the values are ascending with difference of one.
-                                                int color = game.stacks[i].cards[j].suit;
-                                                int value = game.stacks[i].cards[j].value;
-                                                int k;
-                                                for (k = j; k < game.stacks[i].num_cards; k++) {
-                                                    if (game.stacks[i].cards[k].suit != color ||
-                                                        game.stacks[i].cards[k].value != value) {
-                                                        break;
-                                                    }
-                                                    value++;
-                                                }
-                                                if (k != game.stacks[i].num_cards) {
-                                                    break;
-                                                }
-                                                game.state = STATE_GAME_DRAGGING_STACK;
-                                                dragging_stack = i;
-                                                dragging_stack_offset = j;
-                                                dragging_stack_x = event.button.x;
-                                                dragging_stack_y = event.button.y;
-                                                dragging_mouse_off_x = event.button.x - game.stacks[i].cards[j].x;
-                                                dragging_mouse_off_y = event.button.y - game.stacks[i].cards[j].y;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-                        }
-                    }
-                    break;
-                case SDL_MOUSEMOTION:
-                    if (game.state == STATE_GAME_DRAGGING_STACK) {
-                        dragging_stack_x = event.motion.x;
-                        dragging_stack_y = event.motion.y;
-                    } else {
-                        // Highlight menus?
-                        highlightedMenu = -1;
-                        for (int i = 0; i < 7; i++) {
-                            if (event.motion.x >= menuButtons[i].x && event.motion.x >= menuButtons[i].y &&
-                                event.motion.x <= menuButtons[i].x + menuButtons[i].w &&
-                                event.motion.y <= menuButtons[i].y + menuButtons[i].h) {
-                                highlightedMenu = i;
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                case SDL_KEYDOWN:
-                    cntrlHandleKey(event.key.keysym);
-                    break;
-                case SDL_MOUSEBUTTONUP:
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        switch (game.state) {
-                            case STATE_GAME_IDLE:
-                                // Clicked to deal a new row?
-                                if (game.remainingExtraDeals > 0 && event.button.x >= EXTRA_CARDS_X_OFFSET &&
-                                    event.button.x <= EXTRA_CARDS_X_OFFSET + CARD_WIDTH * game.remainingExtraDeals &&
-                                    event.button.y >= EXTRA_CARDS_Y_OFFSET &&
-                                    event.button.y <= EXTRA_CARDS_Y_OFFSET + CARD_HEIGHT) {
-                                    // Check if every slot has at least one card.
-                                    int status = 1;
-                                    for (int i = 0; i < 10; i++) {
-                                        if (game.stacks[i].num_cards == 0) {
-                                            status = 0;
-                                            break;
-                                        }
-                                    }
-                                    if (status) {
-                                        game.state = STATE_GAME_DEALING_ROW;
-                                        game.remainingExtraDeals--;
-                                    }
-                                } else if (highlightedMenu != -1) {
-                                    (menuActions[highlightedMenu])();
-                                }
-                                break;
-                            case STATE_GAME_FIREWORKS:
-                                if (highlightedMenu != -1) {
-                                    (menuActions[highlightedMenu])();
-                                }
-                                break;
-                            case STATE_GAME_DRAGGING_STACK:
-                                drop_stack(event.button.x, event.button.y);
-                                game.state = STATE_GAME_IDLE;
-                                break;
-                            case STATE_GAME_SETTINGS:
-                                settingsHandleMouseUp(event.button.x, event.button.y);
-                                break;
-                            case STATE_GAME_LEADERBOARD:
-                                leaderboardHandleMouseUp(event.button.x, event.button.y);
-                                break;
-                            case STATE_GAME_LOST:
-                                handleLossMouseUp(event.button.x, event.button.y);
-                                if (highlightedMenu != -1) {
-                                    (menuActions[highlightedMenu])();
-                                }
-                                break;
-                        }
-                    }
-                    break;
-            }
-        }
+    frame_start = SDL_GetTicks64();
+    secondsCurrent = time(NULL);
 
-        // Limit the game to 32fps.
-        uint64_t frame_end = SDL_GetTicks64();
-        if (frame_end - frame_start >= 1000 / FPS) {
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            SDL_RenderClear(renderer);
-
-            render_felt();
-            handleRenderInfobox();
-
-            switch (game.state) {
-                case STATE_GAME_IDLE:
-                    if (game.wonKings[7] != -1) {
-                        game.state = STATE_GAME_FIREWORKS;
-                        handle_victory();
-                    } else if (!has_moves()) {
-                        game.state = STATE_GAME_LOST;
-                    }
-                    break;
-                case STATE_GAME_DEAL:
-                    deal();
-                    SDL_Delay(10);
-                    break;
-                case STATE_GAME_DEALING_ROW:
-                    deal_row();
-                    SDL_Delay(40);
-                    break;
-            }
-
-            render_stacks();
-            cntrlRender();
-
-            switch (game.state) {
-                case STATE_GAME_FIREWORKS:
-                    render_fireworks();
-                    break;
-                case STATE_GAME_SETTINGS:
-                    settingsHandleRender();
-                    break;
-                case STATE_GAME_LEADERBOARD:
-                    leaderboardHandleRender();
-                    break;
-                case STATE_GAME_LOST:
-                    handle_loss();
-                    break;
-            }
-
-            tick_fireworks(frame_end - frame_start);
-
-            render_menu();
-
-            SDL_RenderPresent(renderer);
-
-            frame_start = SDL_GetTicks64();
-        } else {
-            SDL_Delay(1);
-        }
-    }
+    #ifndef EMSCRIPTEN
+    while (!done) main_loop();
+    #else
+    emscripten_set_main_loop(main_loop, 0, 1);
+    #endif
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
