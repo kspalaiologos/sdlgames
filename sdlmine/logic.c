@@ -25,7 +25,7 @@ void regenerate_minefield(unsigned x, unsigned y, unsigned mines) {
     for (unsigned i = 0; i < mines; i++) {
         unsigned mine_x = rand() % x;
         unsigned mine_y = rand() % y;
-        if (minefield[mine_y * x + mine_x] == 9 || (mine_x == safepoint_x && mine_y == safepoint_y)) {
+        if (minefield[mine_y * x + mine_x] == 9 || (abs(mine_x - safepoint_x) <= 2 && abs(mine_y - safepoint_y) <= 2)) {
             i--;
             continue;
         }
@@ -165,7 +165,8 @@ int make_move(int x, int y) {
 #include <stdio.h>
 
 void load_settings() {
-    FILE * in = fopen("sdlmine.dat", "r");
+    char file[4096]; strcat(strcpy(file, getenv("HOME")), "/.config/sdlmine.conf");
+    FILE * in = fopen(file, "r");
     if (in == NULL) {
         minefield_x = 9;
         minefield_y = 9;
@@ -181,9 +182,12 @@ void load_settings() {
 }
 
 void save_settings() {
-    FILE * out = fopen("sdlmine.dat", "w");
-    fprintf(out, "%d %d %d\n", minefield_x, minefield_y, minefield_mines);
-    fprintf(out, "%d %d\n", black_white, sounds_enabled);
-    fflush(out);
-    fclose(out);
+    char file[4096]; strcat(strcpy(file, getenv("HOME")), "/.config/sdlmine.conf");
+    FILE * out = fopen(file, "w");
+    if (out != NULL) {
+        fprintf(out, "%d %d %d\n", minefield_x, minefield_y, minefield_mines);
+        fprintf(out, "%d %d\n", black_white, sounds_enabled);
+        fflush(out);
+        fclose(out);
+    }
 }

@@ -9,9 +9,9 @@
 #include <thread>
 
 #include "assets.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl2.h"
-#include "imgui/imgui_impl_sdlrenderer2.h"
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_impl_sdl2.h"
+#include "../imgui/imgui_impl_sdlrenderer2.h"
 
 // Board
 #define B_EMPTY 0
@@ -29,6 +29,10 @@ int anim[8][8] = { 0 };
 int ai_level = 0;
 bool animating = 0;
 int player = B_RED;
+
+// SDL Timer
+SDL_TimerID timer;
+int anim_speed = 1;
 
 // Engine
 void new_game() {
@@ -346,6 +350,24 @@ void game_loop() {
             }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Animation")) {
+            if (ImGui::MenuItem("Fast", nullptr, anim_speed == 0, true)) {
+                anim_speed = 0;
+                SDL_RemoveTimer(timer);
+                timer = SDL_AddTimer(30, animate, nullptr);
+            }
+            if (ImGui::MenuItem("Normal", nullptr, anim_speed == 1, true)) {
+                anim_speed = 1;
+                SDL_RemoveTimer(timer);
+                timer = SDL_AddTimer(70, animate, nullptr);
+            }
+            if (ImGui::MenuItem("Slow", nullptr, anim_speed == 2, true)) {
+                anim_speed = 2;
+                SDL_RemoveTimer(timer);
+                timer = SDL_AddTimer(150, animate, nullptr);
+            }
+            ImGui::EndMenu();
+        }
         ImGui::EndMainMenuBar();
     }
 
@@ -492,7 +514,7 @@ int main() {
     animating = false;
     new_game();
 
-    SDL_AddTimer(70, animate, nullptr);
+    timer = SDL_AddTimer(70, animate, nullptr);
 
     #ifndef EMSCRIPTEN
     while (!done) game_loop();
