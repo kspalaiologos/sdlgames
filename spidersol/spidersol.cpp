@@ -5,17 +5,21 @@
 #include <stdlib.h>
 #include <time.h>
 
+extern "C" {
 #include "cntrl.h"
 #include "deal.h"
 #include "engine.h"
 #include "game_state.h"
 #include "infobox.h"
-#include "leaderboard.h"
-#include "settings.h"
 #include "ui.h"
 #include "undo.h"
 #include "vector.h"
 #include "win.h"
+}
+
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_impl_sdl2.h"
+#include "../imgui/imgui_impl_sdlrenderer2.h"
 
 #define EXTRA_CARDS_X_OFFSET 740
 #define EXTRA_CARDS_Y_OFFSET 570
@@ -28,10 +32,7 @@
 #define MENU_HEIGHT 25
 #define MENU_PADDING 5
 
-/* Misc game stuff */
-SDL_Rect menuButtons[7];
-void (*menuActions[7])(void);
-int highlightedMenu = -1;
+ImGuiIO * io;
 
 /* Dragging. */
 int dragging_stack, dragging_stack_offset, dragging_stack_x, dragging_stack_y;
@@ -209,117 +210,7 @@ void drop_stack(int x, int y) {
     }
 }
 
-void onclickSettings() {
-    game.prevdiff = game.difficulty;
-    game.state = STATE_GAME_SETTINGS;
-}
-
 void onclickQuit() { exit(0); }
-
-void onclickLeaderboard() { game.state = STATE_GAME_LEADERBOARD; }
-
-void render_menu() {
-    SDL_Rect rect;
-    rect.x = 0;
-    rect.y = 0;
-    rect.w = WIN_WIDTH;
-    rect.h = MENU_HEIGHT;
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderDrawRect(renderer, &rect);
-    rect.x++;
-    rect.y++;
-    rect.w -= 2;
-    rect.h -= 2;
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
-    SDL_RenderFillRect(renderer, &rect);
-
-#define createmenu(var, selvar, name, action)                              \
-    {                                                                      \
-        SDL_Color color = { 0, 0, 0, 255 };                                \
-        SDL_Surface * surface = TTF_RenderText_Blended(font, name, color); \
-        var = SDL_CreateTextureFromSurface(renderer, surface);             \
-        SDL_Color selcolor = { 255, 255, 255, 255 };                       \
-        surface = TTF_RenderText_Blended(font, name, selcolor);            \
-        selvar = SDL_CreateTextureFromSurface(renderer, surface);          \
-        SDL_QueryTexture(var, NULL, NULL, &tmp_rect.w, &tmp_rect.h);       \
-        menuButtons[current_item] = tmp_rect;                              \
-        menuActions[current_item] = action;                                \
-        current_item++;                                                    \
-        tmp_rect.x += tmp_rect.w + 2 * MENU_PADDING;                       \
-        SDL_FreeSurface(surface);                                          \
-    }
-
-    // Draw menu options:
-    // New Game | Restart | Undo | Redo | Settings | Quit
-    static SDL_Texture * newGameTexture = NULL;
-    static SDL_Texture * restartTexture = NULL;
-    static SDL_Texture * undoTexture = NULL;
-    static SDL_Texture * redoTexture = NULL;
-    static SDL_Texture * settingsTexture = NULL;
-    static SDL_Texture * leaderboardTexture = NULL;
-    static SDL_Texture * quitTexture = NULL;
-    static SDL_Texture * selnewGameTexture = NULL;
-    static SDL_Texture * selrestartTexture = NULL;
-    static SDL_Texture * selundoTexture = NULL;
-    static SDL_Texture * selredoTexture = NULL;
-    static SDL_Texture * selsettingsTexture = NULL;
-    static SDL_Texture * selleaderboardTexture = NULL;
-    static SDL_Texture * selquitTexture = NULL;
-    if (newGameTexture == NULL) {
-        int current_item = 0;
-        SDL_Rect tmp_rect;
-        tmp_rect.x = 2 * MENU_PADDING;
-        tmp_rect.y = MENU_PADDING;
-        createmenu(newGameTexture, selnewGameTexture, "New Game", new_game);
-        createmenu(restartTexture, selrestartTexture, "Restart", reset_game);
-        createmenu(undoTexture, selundoTexture, "Undo", undo);
-        createmenu(redoTexture, selredoTexture, "Redo", redo);
-        createmenu(settingsTexture, selsettingsTexture, "Settings", onclickSettings);
-        createmenu(leaderboardTexture, selleaderboardTexture, "Leaderboard", onclickLeaderboard);
-        createmenu(quitTexture, selquitTexture, "Quit", onclickQuit);
-    }
-
-#undef createmenu
-
-#define rendermenu(name, selname)                                              \
-    {                                                                          \
-        if (n++ == highlightedMenu) {                                          \
-            SDL_QueryTexture(selname, NULL, NULL, &menu_rect.w, &menu_rect.h); \
-            SDL_Rect border;                                                   \
-            border.x = menu_rect.x - MENU_PADDING;                             \
-            border.y = 1;                                                      \
-            border.h = MENU_HEIGHT - 2;                                        \
-            border.w = menu_rect.w + 2 * MENU_PADDING;                         \
-            SDL_SetRenderDrawColor(renderer, 80, 80, 80, 255);                 \
-            SDL_RenderDrawRect(renderer, &border);                             \
-            SDL_SetRenderDrawColor(renderer, 20, 20, 128, 255);                \
-            rect.x++;                                                          \
-            rect.y++;                                                          \
-            rect.w -= 2;                                                       \
-            rect.h -= 2;                                                       \
-            SDL_RenderFillRect(renderer, &border);                             \
-            SDL_RenderCopy(renderer, selname, NULL, &menu_rect);               \
-        } else {                                                               \
-            SDL_QueryTexture(name, NULL, NULL, &menu_rect.w, &menu_rect.h);    \
-            SDL_RenderCopy(renderer, name, NULL, &menu_rect);                  \
-        }                                                                      \
-        menu_rect.x += menu_rect.w + 2 * MENU_PADDING;                         \
-    }
-
-    SDL_Rect menu_rect;
-    int n = 0;
-    menu_rect.x = 2 * MENU_PADDING;
-    menu_rect.y = MENU_PADDING;
-    rendermenu(newGameTexture, selnewGameTexture);
-    rendermenu(restartTexture, selrestartTexture);
-    rendermenu(undoTexture, selundoTexture);
-    rendermenu(redoTexture, selredoTexture);
-    rendermenu(settingsTexture, selsettingsTexture);
-    rendermenu(leaderboardTexture, selleaderboardTexture);
-    rendermenu(quitTexture, selquitTexture);
-
-#undef rendermenu
-}
 
 #ifdef EMSCRIPTEN
     #include <emscripten.h>
@@ -347,6 +238,7 @@ void main_loop(void) {
                 done = SDL_TRUE;
                 break;
             case SDL_MOUSEBUTTONDOWN:
+                if (io->WantCaptureMouse) break;
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     switch (game.state) {
                         case STATE_GAME_IDLE:
@@ -390,26 +282,18 @@ void main_loop(void) {
                 }
                 break;
             case SDL_MOUSEMOTION:
+                if (io->WantCaptureMouse) break;
                 if (game.state == STATE_GAME_DRAGGING_STACK) {
                     dragging_stack_x = event.motion.x;
                     dragging_stack_y = event.motion.y;
-                } else {
-                    // Highlight menus?
-                    highlightedMenu = -1;
-                    for (int i = 0; i < 7; i++) {
-                        if (event.motion.x >= menuButtons[i].x && event.motion.x >= menuButtons[i].y &&
-                            event.motion.x <= menuButtons[i].x + menuButtons[i].w &&
-                            event.motion.y <= menuButtons[i].y + menuButtons[i].h) {
-                            highlightedMenu = i;
-                            break;
-                        }
-                    }
                 }
                 break;
             case SDL_KEYDOWN:
+                if (io->WantCaptureKeyboard) break;
                 cntrlHandleKey(event.key.keysym);
                 break;
             case SDL_MOUSEBUTTONUP:
+                if (io->WantCaptureMouse) break;
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     switch (game.state) {
                         case STATE_GAME_IDLE:
@@ -430,35 +314,24 @@ void main_loop(void) {
                                     game.state = STATE_GAME_DEALING_ROW;
                                     game.remainingExtraDeals--;
                                 }
-                            } else if (highlightedMenu != -1) {
-                                (menuActions[highlightedMenu])();
-                            }
-                            break;
-                        case STATE_GAME_FIREWORKS:
-                            if (highlightedMenu != -1) {
-                                (menuActions[highlightedMenu])();
                             }
                             break;
                         case STATE_GAME_DRAGGING_STACK:
                             drop_stack(event.button.x, event.button.y);
                             game.state = STATE_GAME_IDLE;
                             break;
-                        case STATE_GAME_SETTINGS:
-                            settingsHandleMouseUp(event.button.x, event.button.y);
-                            break;
-                        case STATE_GAME_LEADERBOARD:
-                            leaderboardHandleMouseUp(event.button.x, event.button.y);
-                            break;
                         case STATE_GAME_LOST:
                             handleLossMouseUp(event.button.x, event.button.y);
-                            if (highlightedMenu != -1) {
-                                (menuActions[highlightedMenu])();
-                            }
                             break;
                     }
                 }
                 break;
         }
+        if (ImGui_ImplSDL2_ProcessEvent(&event)) continue;
+        if (event.type == SDL_QUIT ||
+            (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
+                event.window.windowID == SDL_GetWindowID(window)))
+            done = SDL_TRUE;
     }
 
     // Limit the game to 32fps.
@@ -496,12 +369,6 @@ void main_loop(void) {
             case STATE_GAME_FIREWORKS:
                 render_fireworks();
                 break;
-            case STATE_GAME_SETTINGS:
-                settingsHandleRender();
-                break;
-            case STATE_GAME_LEADERBOARD:
-                leaderboardHandleRender();
-                break;
             case STATE_GAME_LOST:
                 handle_loss();
                 break;
@@ -509,7 +376,66 @@ void main_loop(void) {
 
         tick_fireworks(frame_end - frame_start);
 
-        render_menu();
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window);
+        ImGui::NewFrame();
+
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("Game")) {
+                if (ImGui::MenuItem("New Game", "Ctrl+N")) {
+                    new_game();
+                }
+                if (ImGui::MenuItem("Restart", "Ctrl+X")) {
+                    reset_game();
+                }
+                if (ImGui::MenuItem("Undo", "Ctrl+U")) {
+                    undo();
+                }
+                if (ImGui::MenuItem("Redo", "Ctrl+R")) {
+                    redo();
+                }
+                if (ImGui::MenuItem("Quit", "Ctrl+Q")) {
+                    done = SDL_TRUE;
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Difficulty")) {
+                if (ImGui::MenuItem("Easy: One suit", NULL, game.difficulty == 1)) {
+                    game.difficulty = 1;
+                    new_game();
+                }
+                if (ImGui::MenuItem("Medium: Two suits", NULL, game.difficulty == 2)) {
+                    game.difficulty = 2;
+                    new_game();
+                }
+                if (ImGui::MenuItem("Hard: Four suits", NULL, game.difficulty == 3)) {
+                    game.difficulty = 3;
+                    new_game();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Card Back")) {
+                #define GEN_BACK(name, id) if (ImGui::MenuItem(name, NULL, game.selected_card_back == id)) game.selected_card_back = id;
+                GEN_BACK("Floral", 0);
+                GEN_BACK("Fish (blue)", 1);
+                GEN_BACK("Bricks", 2);
+                GEN_BACK("Acorns", 3);
+                GEN_BACK("Robot", 4);
+                GEN_BACK("Fish (cyan)", 5);
+                GEN_BACK("Dots", 6);
+                GEN_BACK("Castle", 7);
+                GEN_BACK("Fabric", 8);
+                GEN_BACK("Roses", 9);
+                GEN_BACK("Beach", 10);
+                GEN_BACK("Shell", 11);
+                GEN_BACK("Fish (yellow)", 12);
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
         SDL_RenderPresent(renderer);
 
@@ -541,6 +467,18 @@ int main(void) {
 
     frame_start = SDL_GetTicks64();
     secondsCurrent = time(NULL);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    io = &ImGui::GetIO();
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io->IniFilename = NULL;
+    io->LogFilename = NULL;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer);
 
     #ifndef EMSCRIPTEN
     while (!done) main_loop();

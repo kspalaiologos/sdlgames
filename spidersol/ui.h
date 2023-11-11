@@ -14,7 +14,7 @@
 #define CARD_HEIGHT 96
 
 #define STACK_X_OFFSET 30
-#define STACK_Y_OFFSET 60
+#define STACK_Y_OFFSET 50
 
 #define HIDDEN_Y_OFFSET 8
 #define VISIBLE_Y_OFFSET 30

@@ -264,7 +264,7 @@ Uint32 animate(Uint32 interval, void * param) {
 
 SDL_Window * window;
 SDL_Renderer * renderer;
-ImGuiIO io;
+ImGuiIO * io;
 char difficulty;
 bool done = false;
 
@@ -277,7 +277,7 @@ void game_loop() {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_MOUSEBUTTONUP:
-                if (io.WantCaptureMouse) break;
+                if (io->WantCaptureMouse) break;
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     int mx = event.button.x;
                     int my = event.button.y;
@@ -500,10 +500,10 @@ int main() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    io = ImGui::GetIO();
-    (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.IniFilename = NULL;
+    io = &ImGui::GetIO();
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io->IniFilename = NULL;
+    io->LogFilename = NULL;
 
     ImGui::StyleColorsClassic();
 

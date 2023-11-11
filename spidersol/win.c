@@ -2,7 +2,6 @@
 #include "win.h"
 
 #include "game_state.h"
-#include "leaderboard.h"
 #include "undo.h"
 
 void try_collapse_row() {
@@ -57,40 +56,6 @@ void try_collapse_row() {
 
 int handle_victory() {
     boardStateChangedDispatcher();
-
-    // Add to the highest scores leaderboard?
-    // Check if there are empty leaderboard entries.
-    int i;
-    for (i = 0; i < 10; i++) {
-        if (game.leaderboard[i].when == 0) {
-            break;
-        }
-    }
-
-    // If so, fill the slot with our score.
-    if (i < 10) {
-        game.leaderboard[i].score = game.points;
-        game.leaderboard[i].moves = game.moves;
-        game.leaderboard[i].time = game.time;
-        game.leaderboard[i].when = time(NULL);
-        onLeaderboardUpdate();
-    } else {
-        // Otherwise, check if our score is higher than the lowest score.
-        int lowest = 0;
-        for (i = 0; i < 10; i++) {
-            if (game.leaderboard[i].score < game.points) {
-                lowest = i;
-            }
-        }
-
-        if (game.points > game.leaderboard[lowest].score) {
-            game.leaderboard[lowest].score = game.points;
-            game.leaderboard[lowest].moves = game.moves;
-            game.leaderboard[lowest].time = game.time;
-            game.leaderboard[lowest].when = time(NULL);
-            onLeaderboardUpdate();
-        }
-    }
 }
 
 #include "ui.h"

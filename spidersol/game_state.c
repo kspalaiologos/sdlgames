@@ -1,14 +1,13 @@
 
 #include "game_state.h"
 
-#include "leaderboard.h"
 #include "undo.h"
+
+#include <stdio.h>
 
 static char * fs_name() { return "solitaire.dat"; }
 
 static void fs_flush_data(FILE * f) { fflush(f); }
-
-#include <stdio.h>
 
 struct game_data game = { .remainingExtraDeals = 5,
                           .timeDelta = -1,
@@ -38,8 +37,8 @@ void reset_game() {
 }
 
 void new_game() {
+    game.lastseed = time(NULL);
     reset_game();
-    srand(game.lastseed = time(NULL));
 }
 
 void load_storage() {
@@ -50,14 +49,6 @@ void load_storage() {
         new_game();
         return;
     }
-
-    // Leaderboard entries.
-    for (int i = 0; i < 10; i++) {
-        fscanf(f, "%d %d %d %d\n", &game.leaderboard[i].score, &game.leaderboard[i].moves, &game.leaderboard[i].time,
-               &game.leaderboard[i].when);
-    }
-
-    onLeaderboardUpdate();
 
     fscanf(f, "%d %d \n", &game.selected_card_back, &game.difficulty);
     for (int i = 0; i < 8; i++) {
@@ -99,20 +90,14 @@ void save_storage() {
         return;
     }
 
-    // Leaderboard entries:
-    for (int i = 0; i < 10; i++) {
-        fprintf(f, "%d %d %d %d\n", game.leaderboard[i].score, game.leaderboard[i].moves, game.leaderboard[i].time,
-                game.leaderboard[i].when);
-    }
-
     fprintf(f, "%d %d \n", game.selected_card_back, game.difficulty);
     for (int i = 0; i < 8; i++) {
         fprintf(f, "%d ", game.wonKings[i]);
     }
     fprintf(f, "\n");
 
-    // Synchronise the game state only if we're in the IDLE, LEADERBOARD or SETTINGS state.
-    if (game.state == STATE_GAME_IDLE || game.state == STATE_GAME_SETTINGS || game.state == STATE_GAME_LEADERBOARD) {
+    // Synchronise the game state only if we're in the IDLE state.
+    if (game.state == STATE_GAME_IDLE) {
         fprintf(f, "1\n");
         fprintf(f, "%d %d %d %d %d \n", game.points, game.time, game.moves, game.prevdiff, game.remainingExtraDeals);
         for (int i = 0; i < 5; i++) {

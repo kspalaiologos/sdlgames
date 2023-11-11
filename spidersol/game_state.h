@@ -11,9 +11,7 @@ enum {
     STATE_GAME_DEAL,
     STATE_GAME_DRAGGING_STACK,
     STATE_GAME_DEALING_ROW,
-    STATE_GAME_SETTINGS,
     STATE_GAME_FIREWORKS,
-    STATE_GAME_LEADERBOARD,
     STATE_GAME_LOST
 };
 
@@ -40,13 +38,6 @@ struct historical_state {
     int remainingExtraDeals;
 };
 
-struct leaderboard_entry {
-    int score;
-    int moves;
-    int time;
-    time_t when;
-};
-
 struct game_data {
     int remainingExtraDeals;
     struct card extracards[5][10];
@@ -68,8 +59,6 @@ struct game_data {
     int needsTextRepaint;
 
     int counts[4][13];
-
-    struct leaderboard_entry leaderboard[10];
 };
 
 extern struct game_data game;

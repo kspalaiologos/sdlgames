@@ -1,12 +1,12 @@
 AC_PREREQ([2.71])
 AC_INIT([spidersol], [1.0], [kspalaiologos@gmail.com])
-AC_CONFIG_SRCDIR([spidersol.c])
+AC_CONFIG_SRCDIR([spidersol.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux])
 AC_COPYRIGHT([Copyright (C) 2023 Kamila Szewczyk; licensed under the terms of the GNU GPLv3 license.])
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 # Checks for programs.
 AC_PROG_CXX

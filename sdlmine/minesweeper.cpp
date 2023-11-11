@@ -51,7 +51,7 @@ int may_restart = 0, game_over = 0, game_start, counter2 = 0;
 
 int timer_started = 0, mouth_idx = 0;
 
-ImGuiIO io;
+ImGuiIO * io;
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -94,7 +94,7 @@ void game_loop(void) {
                     running = false;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    if (io.WantCaptureMouse) break;
+                    if (io->WantCaptureMouse) break;
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         // If within the bounds of the face
                         SDL_Rect rect;
@@ -115,7 +115,7 @@ void game_loop(void) {
                     }
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    if (io.WantCaptureMouse) break;
+                    if (io->WantCaptureMouse) break;
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         // If within the bounds of the face
                         SDL_Rect rect;
@@ -397,10 +397,10 @@ int main(void) {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    io = ImGui::GetIO();
-    (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.IniFilename = NULL;
+    io = &ImGui::GetIO();
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io->IniFilename = NULL;
+    io->LogFilename = NULL;
 
     ImGui::StyleColorsClassic();
 
