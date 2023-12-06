@@ -16,6 +16,7 @@ jobs:
     - name: Configure
       run: |
         ./autogen.sh
+        ./configure
     - name: Make source packages
       run: |
         make dist && gzip -dk sdlgames-1.0.tar.gz && ../bzip3-x86_64-linux sdlgames-1.0.tar && cd ..
