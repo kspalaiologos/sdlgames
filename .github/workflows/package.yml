@@ -11,18 +11,14 @@ jobs:
     - name: Install SDL & bzip3
       run: |
         sudo apt install -y libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev
-        wget https://github.com/kspalaiologos/bzip3/releases/download/1.3.1/bzip3-x86_64-linux
+        wget https://github.com/kspalaiologos/bzip3/releases/download/1.4.0/bzip3-x86_64-linux
         chmod a+x bzip3-x86_64-linux
     - name: Configure
       run: |
-        cd sdlmine && ./autogen.sh && ./configure && cd ..
-        cd sdlreversi && ./autogen.sh && ./configure && cd ..
-        cd spidersol && ./autogen.sh && ./configure && cd ..
+        ./autogen.sh
     - name: Make source packages
       run: |
-        cd sdlmine && make dist && gzip -dk sdlmine-1.0.tar.gz && ../bzip3-x86_64-linux sdlmine-1.0.tar && cd ..
-        cd sdlreversi && make dist && gzip -dk sdlreversi-1.0.tar.gz && ../bzip3-x86_64-linux sdlreversi-1.0.tar && cd ..
-        cd spidersol && make dist && gzip -dk spidersol-1.0.tar.gz && ../bzip3-x86_64-linux spidersol-1.0.tar && cd ..
+        make dist && gzip -dk sdlgames-1.0.tar.gz && ../bzip3-x86_64-linux sdlgames-1.0.tar && cd ..
     - name: Generate release tag
       id: tag
       run: |
@@ -34,9 +30,5 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         files: |
-          sdlmine/sdlmine-1.0.tar.gz
-          sdlreversi/sdlreversi-1.0.tar.gz
-          spidersol/spidersol-1.0.tar.gz
-          sdlmine/sdlmine-1.0.tar.bz3
-          sdlreversi/sdlreversi-1.0.tar.bz3
-          spidersol/spidersol-1.0.tar.bz3
+          sdlgames-1.0.tar.gz
+          sdlgames-1.0.tar.bz3
