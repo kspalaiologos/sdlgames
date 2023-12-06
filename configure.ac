@@ -1,10 +1,17 @@
 AC_PREREQ([2.71])
-AC_INIT([spidersol], [1.0], [kspalaiologos@gmail.com])
-AC_CONFIG_SRCDIR([spidersol.cpp])
+AC_INIT([sdlgames], [1.0], [kspalaiologos@gmail.com])
+AC_CONFIG_SRCDIR([.])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux])
-AC_COPYRIGHT([Copyright (C) 2023 Kamila Szewczyk; licensed under the terms of the GNU GPLv3 license.])
+AC_COPYRIGHT([Copyright (C) 2023 Kamila Szewczyk; licensed under the terms of the GNU GPLv3-or-later license.])
+
+if test "`uname -s`" = "NetBSD"; then
+	AM_CONDITIONAL(NETBSD, true)
+	CFLAGS="-I/usr/pkg/include -L/usr/pkg/lib -Wl,-R/usr/pkg/lib"
+else
+	AM_CONDITIONAL(NETBSD, false)
+fi
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 
@@ -25,5 +32,8 @@ AC_CHECK_HEADERS([SDL2/SDL.h], , AC_MSG_ERROR([SDL2 missing.]))
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX([17], [ext], [])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([spidersol/Makefile sdlreversi/Makefile sdlmine/Makefile Makefile])
 AC_OUTPUT
+
+cd sdlmine && ./gen_assets.sh && cd ..
+cd sdlreversi && ./gen_assets.sh && cd ..

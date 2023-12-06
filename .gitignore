@@ -5,10 +5,6 @@ spidersol/solitaire.dat
 
 spidersol/spidersol
 
-sdlmine/sdlmine.js
-
-sdlmine/sdlmine.mem
-
 sdlmine/config.h.in~
 
 *.o
@@ -18,3 +14,43 @@ imgui/.deps/
 imgui/.dirstamp
 
 spidersol/configure~
+
+autom4te.cache/
+
+config.h
+
+config.h.in
+
+config.log
+
+config.status
+
+configure
+
+configure~
+
+Makefile
+
+sdlreversi/assets.c
+
+Makefile.in
+
+stamp-h1
+
+sdlmine/.deps/
+
+sdlmine/assets.h
+
+sdlmine/sdlmine
+
+sdlreversi/.deps/
+
+sdlreversi/ai/.deps/
+
+sdlreversi/ai/.dirstamp
+
+sdlreversi/assets.cpp
+
+sdlreversi/assets.h
+
+spidersol/.deps/
