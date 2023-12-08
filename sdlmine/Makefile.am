@@ -4,6 +4,8 @@ else
 AM_COMMON =
 endif
 
+EXTRA_DIST = gen_assets.sh
+
 AM_CXXFLAGS = $(AM_COMMON) $(SDL_CFLAGS) $(SDL_ttf_CFLAGS) $(SDL_mixer_CFLAGS)
 AM_CFLAGS = $(AM_COMMON) $(SDL_CFLAGS) $(SDL_ttf_CFLAGS) $(SDL_mixer_CFLAGS)
 
