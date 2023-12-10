@@ -20,6 +20,12 @@ jobs:
     - name: Make source packages
       run: |
         make dist && gzip -dk sdlgames-1.0.tar.gz && ./bzip3-x86_64-linux sdlgames-1.0.tar && cd ..
+    - name: Try to build the source package.
+      run: |
+        tar -xf sdlgames-1.0.tar.gz
+        cd sdlgames-1.0
+        ./configure
+        make
     - name: Generate release tag
       id: tag
       run: |
