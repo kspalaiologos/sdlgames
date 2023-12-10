@@ -4,7 +4,7 @@ else
 AM_COMMON =
 endif
 
-EXTRA_DIST = spidersol/gen_assets.sh sdlmine/gen_assets.sh sdlreversi/gen_assets.sh
+EXTRA_DIST = sdlmine/gen_assets.sh sdlreversi/gen_assets.sh spidersol/asset/* sdlreversi/assets/* sdlmine/assets/*
 
 AM_CXXFLAGS = $(AM_COMMON) $(SDL_CFLAGS) $(SDL_ttf_CFLAGS) $(SDL_mixer_CFLAGS)
 AM_CFLAGS = $(AM_COMMON) $(SDL_CFLAGS) $(SDL_ttf_CFLAGS) $(SDL_mixer_CFLAGS)
