@@ -32,8 +32,9 @@ AC_CHECK_HEADERS([SDL2/SDL.h], , AC_MSG_ERROR([SDL2 missing.]))
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX([17], [ext], [])
 
-AC_CONFIG_FILES([spidersol/Makefile sdlreversi/Makefile sdlmine/Makefile Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
 cd sdlmine && ./gen_assets.sh && cd ..
 cd sdlreversi && ./gen_assets.sh && cd ..
+mkdir -p bin

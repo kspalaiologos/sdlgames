@@ -54,3 +54,5 @@ sdlreversi/assets.cpp
 sdlreversi/assets.h
 
 spidersol/.deps/
+
+bin/
